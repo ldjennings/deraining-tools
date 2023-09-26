@@ -1,19 +1,18 @@
-import numpy as np
-import tensorflow as tf
 from CVAE import *
 
 # Change this variable to wherever your test dataset is located. 
 # This follows the same format as the training dataset.
 TEST_DATASET_PATH = 'test_a'
+TEST_MODEL_PATH   = 'good_model.h5'
 
-cvae = CVAE(encoder, decoder)
+cvae = CVAE()
 
 # random input to ensure model is loaded
 dummy_input = np.random.rand(1, *img_shape).astype('float32')
 cvae(dummy_input)
 
 # loading pretrained model
-cvae.load_weights('./good_model.h5')
+cvae.load_weights(TEST_MODEL_PATH)
 
 # loading test dataset
 test_rain, _ = load_dataset(TEST_DATASET_PATH)

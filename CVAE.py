@@ -58,7 +58,7 @@ x = layers.Dense(256, activation='relu')(x)
 z_mean = layers.Dense(latent_dim, name="z_mean")(x)
 z_log_var = layers.Dense(latent_dim, name="z_log_var")(x)
 z = Sampling()([z_mean, z_log_var])
-encoder = keras.Model(encoder_inputs, [z_mean, z_log_var, z], name="encoder")
+CVAE_encoder = keras.Model(encoder_inputs, [z_mean, z_log_var, z], name="encoder")
 # encoder.summary()
 
 
@@ -69,12 +69,12 @@ x = layers.Conv2DTranspose(128, (3, 3), activation='relu', strides=(2, 2), paddi
 x = layers.Conv2DTranspose(64, (3, 3), activation='relu', strides=(2, 2), padding='same')(x)
 x = layers.Conv2DTranspose(32, (3, 3), activation='relu', strides=(2, 2), padding='same')(x)
 decoder_outputs = layers.Conv2DTranspose(3, (3, 3), activation='sigmoid', padding='same')(x)
-decoder = keras.Model(latent_inputs, decoder_outputs, name="decoder")
+CVAE_decoder = keras.Model(latent_inputs, decoder_outputs, name="decoder")
 # decoder.summary()
 
 
 class CVAE(keras.Model):
-    def __init__(self, encoder, decoder, **kwargs):
+    def __init__(self, encoder= CVAE_encoder, decoder=CVAE_decoder, **kwargs):
         super().__init__(**kwargs)
         self.encoder = encoder
         self.decoder = decoder
@@ -130,38 +130,3 @@ class CVAE(keras.Model):
         z_mean, z_log_var, z = self.encoder(input)
         reconstruction = self.decoder(z)
         return reconstruction
-
-if __name__ == '__main__':
-    # Run this file as a script to train the model. Modify the batch_size and epochs variables
-    # to tune the training process.
-
-    # Change these to wherever your dataset is located, and where you want the saved model to
-    # be outputted. The dataset should be in the form of:
-    #
-    #   -Dataset directory
-    #       -'data' directory containing images with rain artifacts
-    #       -'gt' directory containing ground truth clear images
-    #
-    # The program is currently set to load .png files, but that can easily be changed by 
-    # modifying the load_dataset() method.
-    TRAIN_DATASET_PATH   = 'train'
-    
-    # The model should be in .h5 format, or similar.
-    MODEL_OUTPUT_PATH = 'trained_model.h5'
-
-    cvae = CVAE(encoder, decoder)
-
-    rainy_images, clean_images = load_dataset(TRAIN_DATASET_PATH)
-
-    # optimization method
-    optimizer = tf.keras.optimizers.Nadam()
-
-    # compile 
-    cvae.compile(optimizer=optimizer, run_eagerly=True)
-
-    # train
-    batch_size = 10
-    epochs = 50
-    history = cvae.fit((rainy_images, clean_images), batch_size=batch_size, epochs=epochs)
-
-    cvae.save_weights(MODEL_OUTPUT_PATH)
