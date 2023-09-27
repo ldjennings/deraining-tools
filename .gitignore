@@ -1,5 +1,8 @@
 .vscode
 __pycache__
+scratch*
 scrap*
 venv
 train/*
+figures/*
+trained_model.h5
